@@ -1,0 +1,17 @@
+[
+  { "id": 1, "name": "Maniek", "rating": 500 },
+  { "id": 2, "name": "Patka", "rating": 500 },
+  { "id": 3, "name": "Wonski", "rating": 500 },
+  { "id": 4, "name": "Kita", "rating": 500 },
+  { "id": 5, "name": "Fabian", "rating": 500 },
+  { "id": 6, "name": "Krzych", "rating": 500 },
+  { "id": 7, "name": "Kuba", "rating": 500 },
+  { "id": 8, "name": "Jbc", "rating": 500 },
+  { "id": 9, "name": "Maks", "rating": 500 },
+  { "id": 10, "name": "Miras", "rating": 500 },
+  { "id": 11, "name": "Bodzio", "rating": 500 },
+  { "id": 12, "name": "Piotrek", "rating": 500 },
+  { "id": 13, "name": "Maciek", "rating": 500 },
+  { "id": 14, "name": "Marcel", "rating": 500 },
+  { "id": 15, "name": "Filip", "rating": 500 }
+]

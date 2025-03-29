@@ -1,103 +1,168 @@
-import Image from "next/image";
+"use client";
+import React, { useState, useEffect } from 'react';
+import playersData from '../players/players.json';
 
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+const Home = () => {
+    const [players, setPlayers] = useState<{ id: number; name: string; rating: number; selected: boolean }[]>([]);
+    const [teams, setTeams] = useState<{ team1: { name: string; rating: number }[]; team2: { name: string; rating: number }[] }>({ team1: [], team2: [] });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [team1Score, setTeam1Score] = useState(0);
+    const [team2Score, setTeam2Score] = useState(0);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    useEffect(() => {
+        setPlayers(playersData.map(player => ({ ...player, selected: false })));
+    }, []);
+
+    const handleCheckboxChange = (id: number) => {
+        setPlayers(players.map(player => player.id === id ? { ...player, selected: !player.selected } : player));
+    };
+
+    const handleRandomizeTeams = () => {
+        const selectedPlayers = players.filter(player => player.selected);
+        const shuffledPlayers = selectedPlayers.sort(() => 0.5 - Math.random());
+        const half = Math.ceil(shuffledPlayers.length / 2);
+        const team1 = shuffledPlayers.slice(0, half).map(player => ({ name: player.name, rating: player.rating }));
+        const team2 = shuffledPlayers.slice(half).map(player => ({ name: player.name, rating: player.rating }));
+        setTeams({ team1, team2 });
+    };
+
+    const handleOpenModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+    };
+
+    const handleSubmitScores = () => {
+        const updatedPlayers = players.map(player => {
+            if (teams.team1.some(p => p.name === player.name)) {
+                return { ...player, rating: player.rating + (team1Score > team2Score ? 10 : -10) };
+            }
+            if (teams.team2.some(p => p.name === player.name)) {
+                return { ...player, rating: player.rating + (team2Score > team1Score ? 10 : -10) };
+            }
+            return player;
+        });
+        setPlayers(updatedPlayers);
+        handleCloseModal();
+    };
+
+    const getRank = (rating: number): number => {
+        if (rating >= 1401) return 18;
+        if (rating >= 1301) return 17;
+        if (rating >= 1201) return 16;
+        if (rating >= 1121) return 15;
+        if (rating >= 1041) return 14;
+
+        if (rating >= 961) return 13;
+        if (rating >= 881) return 12;
+        if (rating >= 801) return 11;
+        if (rating >= 721) return 10;
+        if (rating >= 641) return 9;
+        if (rating >= 561) return 8;
+        if (rating >= 481) return 7;
+        if (rating >= 401) return 6;
+        if (rating >= 321) return 5;
+        if (rating >= 241) return 4;
+        if (rating >= 161) return 3;
+        if (rating >= 81) return 2;
+        return 1;
+    };
+
+    return (
+        <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-900 text-white font-press-start">
+            <h1 className="text-3xl font-bold mb-4">Team Randomizer by JBRKR & Maniek</h1>
+            <div className="mb-4 w-full max-w-3xl">
+                <div className="grid grid-cols-4 gap-4">
+                    {players.map(player => (
+                        <div key={player.id} className="flex items-center bg-gray-800 p-2 rounded">
+                            <input
+                                type="checkbox"
+                                checked={player.selected}
+                                onChange={() => handleCheckboxChange(player.id)}
+                                className="form-checkbox h-4 w-4 text-orange-500 mr-2"
+                            />
+                            <span>{player.name}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <button
+                onClick={handleRandomizeTeams}
+                className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-700 text-sm"
+            >
+                Randomize Teams
+            </button>
+            <button
+                onClick={handleOpenModal}
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 text-sm mt-4"
+            >
+                Zatwierdź Teamy
+            </button>
+            <div className="flex justify-around w-full mt-4">
+                <div className="w-1/5 p-2">
+                    <h2 className="text-xl font-semibold mb-2 text-center">Team 1</h2>
+                    <div className="bg-gray-800 p-4 rounded shadow text-sm text-center">
+                        {teams.team1.map((player, index) => (
+                            <div key={index} className="bg-gray-700 p-2 rounded mb-2 text-white">
+                                {player.name} ({player.rating})
+                                <img src={`/ranks/${getRank(player.rating)}.svg`} alt={`Rank ${getRank(player.rating)}`} className="ml-2 h-16 w-16 inline-block" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className="w-1/5 p-2">
+                    <h2 className="text-xl font-semibold mb-2 text-center">Team 2</h2>
+                    <div className="bg-gray-800 p-4 rounded shadow text-sm text-center">
+                        {teams.team2.map((player, index) => (
+                            <div key={index} className="bg-gray-700 p-2 rounded mb-2 text-white">
+                                {player.name} ({player.rating})
+                                <img src={`/ranks/${getRank(player.rating)}.svg`} alt={`Rank ${getRank(player.rating)}`} className="ml-2 h-16 w-16 inline-block" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+            {isModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-4 rounded shadow-lg text-black">
+                        <h2 className="text-xl font-semibold mb-4">Wpisz Wyniki</h2>
+                        <div className="mb-4">
+                            <label className="block mb-2">Team 1 Score:</label>
+                            <input
+                                type="number"
+                                value={team1Score}
+                                onChange={(e) => setTeam1Score(Number(e.target.value))}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block mb-2">Team 2 Score:</label>
+                            <input
+                                type="number"
+                                value={team2Score}
+                                onChange={(e) => setTeam2Score(Number(e.target.value))}
+                                className="w-full p-2 border rounded"
+                            />
+                        </div>
+                        <button
+                            onClick={handleSubmitScores}
+                            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 mr-2"
+                        >
+                            Zatwierdź
+                        </button>
+                        <button
+                            onClick={handleCloseModal}
+                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-700"
+                        >
+                            Anuluj
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
-}
+    );
+};
+
+export default Home;
